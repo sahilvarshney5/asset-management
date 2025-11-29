@@ -1,0 +1,30 @@
+name: Deploy Solution to TEST
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Power Platform CLI
+        uses: microsoft/powerplatform-actions/actions-install@v1
+
+      - name: Auth to Power Platform
+        uses: microsoft/powerplatform-actions/auth@v1
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          tenant-id: ${{ secrets.TENANT_ID }}
+          client-secret: ${{ secrets.CLIENT_SECRET }}
+          environment-url: ${{ secrets.TEST_ENV_URL }}
+
+      - name: Import solution
+        uses: microsoft/powerplatform-actions/import-solution@v1
+        with:
+          path: ./solutions/AssetManagement.zip
+          force-overwrite: true
