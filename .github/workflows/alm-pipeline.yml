@@ -1,30 +1,38 @@
-name: Deploy Solution to TEST
+name: ALM Pipeline
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  export:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Install Power Platform CLI
-        uses: microsoft/powerplatform-actions/actions-install@v1
-
-      - name: Auth to Power Platform
-        uses: microsoft/powerplatform-actions/auth@v1
+      - name: Power Platform Authenticate
+        uses: microsoft/powerplatform-actions/actions-authenticate@v1
         with:
-          client-id: ${{ secrets.CLIENT_ID }}
-          tenant-id: ${{ secrets.TENANT_ID }}
+          app-id: ${{ secrets.CLIENT_ID }}
           client-secret: ${{ secrets.CLIENT_SECRET }}
-          environment-url: ${{ secrets.TEST_ENV_URL }}
+          tenant-id: ${{ secrets.TENANT_ID }}
 
-      - name: Import solution
-        uses: microsoft/powerplatform-actions/import-solution@v1
+      - name: Export Solution
+        uses: microsoft/powerplatform-actions/actions-export-solution@v1
         with:
-          path: ./solutions/AssetManagement.zip
-          force-overwrite: true
+          environment-url: ${{ secrets.TEST_ENV_URL }}
+          solution-name: AssetManagement
+          solution-output-file: out/exported_solution.zip
+
+      - name: Commit Files
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Exported latest solution" || echo "No changes to commit"
+
+      - name: Push Changes
+        uses: ad-m/github-push-action@v0.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
