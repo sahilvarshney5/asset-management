@@ -1,38 +1,33 @@
-name: ALM Pipeline
+name: Power Platform CI/CD
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main # Trigger on push to main branch
 
 jobs:
-  export:
-    runs-on: ubuntu-latest
-
+  export_and_pack_solution:
+    runs-on: windows-latest # or ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Power Platform Authenticate
-        uses: microsoft/powerplatform-actions/actions-authenticate@v1
+      - uses: actions/checkout@v3
+      - name: Export and Pack Solution
+        uses: microsoft/powerplatform-actions/pack-solution@v0
         with:
-          app-id: ${{ secrets.CLIENT_ID }}
-          client-secret: ${{ secrets.CLIENT_SECRET }}
+          # ... (configuration for solution export and packing)
+          solution-file: 'path/to/AssetManagementn.zip'
+          solution-type: Managed
+
+  deploy_to_test:
+    needs: export_and_pack_solution
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Test Environment
+        uses: microsoft/powerplatform-actions/import-solution@v0
+        with:
+          # ... (configuration for deployment to test environment)
+          solution-file: 'path/to/AssetManagementn.zip'
+          environment-url: ${{ secrets.TEST_ENVIRONMENT_URL }}
+          client-id: ${{ secrets.CLIENT_ID }}
           tenant-id: ${{ secrets.TENANT_ID }}
-
-      - name: Export Solution
-        uses: microsoft/powerplatform-actions/actions-export-solution@v1
-        with:
-          environment-url: ${{ secrets.TEST_ENV_URL }}
-          solution-name: AssetManagement
-          solution-output-file: out/exported_solution.zip
-
-      - name: Commit Files
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .
-          git commit -m "Exported latest solution" || echo "No changes to commit"
-
-      - name: Push Changes
-        uses: ad-m/github-push-action@v0.8.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          client-secret: ${{ secrets.CLIENT_SECRET }}
