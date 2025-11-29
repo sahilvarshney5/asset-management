@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Export and Pack Solution
-        uses: microsoft/powerplatform-actions/pack-solution@v0
+        uses: microsoft/powerplatform-actions@v0
         with:
           # ... (configuration for solution export and packing)
           solution-file: 'path/to/AssetManagementn.zip'
@@ -31,3 +31,4 @@ jobs:
           client-id: ${{ secrets.CLIENT_ID }}
           tenant-id: ${{ secrets.TENANT_ID }}
           client-secret: ${{ secrets.CLIENT_SECRET }}
+
